@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">WeatherApp</string>
+    <string name="action_settings">Settings</string>
+    
+    <string name="data_label">Data details:</string>
+    <string name="name_label">Name:</string>
+    <string name="location_label">Location (lat, lng):</string>
+    <string name="pressure_label">Pressure in hPa:</string>
+    <string name="humidity_label">Humidity in %:</string>
+    <string name="temp_label">Temperature in Celsius:</string>
+    <string name="temp_min_label">Min Temperature in Celsius:</string>
+    <string name="temp_max_label">Max Temperature in Celsius:</string>
+    
+    <string name="icon_desc">Icon representing the weather conditions</string>
+    
+    <string name="error_request_msg">Sorry, an error occurred while fetching the weather info</string>
+    <string name="error_icon_msg">An error occurred while fetching the icon</string>
+    <string name="error_connectivity_msg">There is no data connection available</string>
+
+</resources>
