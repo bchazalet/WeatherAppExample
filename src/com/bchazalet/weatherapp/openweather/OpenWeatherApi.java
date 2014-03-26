@@ -11,6 +11,8 @@ import java.net.URL;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
 
@@ -95,15 +97,14 @@ public class OpenWeatherApi {
 	 * @return
 	 * 		a drawable representing the icon; null if an error occurred
 	 */
-	public static Drawable getIcon(String iconCode){
+	public static Bitmap getIcon(String iconCode){
 		String urlString = String.format(ICON_BASE_URL, iconCode);
 		
 		HttpURLConnection urlConnection = null;
-		Drawable img = null;
+		Bitmap img = null;
 		try {
 			URL url = new URL(urlString.toString());
-			urlConnection = (HttpURLConnection) url.openConnection();
-			img = Drawable.createFromStream(urlConnection.getInputStream(), "src");
+			img = BitmapFactory.decodeStream(url.openStream());
 		} catch (MalformedURLException e) {
 			Log.e(TAG, "error while fetching icon (this should not happen really!)", e);
 		} catch (IOException e) {

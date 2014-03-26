@@ -4,14 +4,16 @@ import java.text.DecimalFormat;
 
 import com.bchazalet.weatherapp.openweather.OpenWeatherApi;
 import com.bchazalet.weatherapp.openweather.WeatherData;
-import com.example.weatherapp.R;
+import com.bchazalet.weatherapp.R;
 
 import android.support.v7.app.ActionBarActivity;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -29,10 +31,32 @@ public class MainActivity extends ActionBarActivity {
 
 	private DecimalFormat NUMERIC_FORMAT = new DecimalFormat("#.0");
 	
+	private static final String RESTORE_DATA_KEY = "WEATHER_DATA";
+	private static final String RESTORE_ICON_KEY = "ICON";
+	private static final String RESTORE_POSITON_KEY = "POSITION";
+	
+	private WeatherData currentData = null;
+	
+	private Bitmap currentIcon = null;
+	
+	private int currentPosition = -1;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		
+		if(savedInstanceState != null){
+			WeatherData data = (WeatherData) savedInstanceState.getSerializable(RESTORE_DATA_KEY);
+			if(data != null){
+				updateDisplayedData(data);
+			}
+			Bitmap img = (Bitmap) savedInstanceState.getParcelable(RESTORE_ICON_KEY);
+			if(img != null){
+				updateIcon(img);
+			}
+			currentPosition = savedInstanceState.getInt(RESTORE_POSITON_KEY, -1);
+		}
 		
 		// Setting up spinner
 		final Spinner spinner = (Spinner) findViewById(R.id.cities_spinner);
@@ -45,7 +69,8 @@ public class MainActivity extends ActionBarActivity {
 
 			@Override
 			public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
-				if(pos > 0){ // 0 is "Select a city"
+				// don't fetch again the info if we are restoring since we have the data
+				if(pos > 0 && pos != currentPosition){ // 0 is "Select a city"
 					if(isDataConnected()){
 						String city = parent.getItemAtPosition(pos).toString();
 						new GetWeatherDataTask().execute(city);
@@ -54,6 +79,7 @@ public class MainActivity extends ActionBarActivity {
 						showErrorMsg(getString(R.string.error_connectivity_msg));
 					}
 				}
+				currentPosition = pos;
 			}
 
 			@Override
@@ -62,6 +88,13 @@ public class MainActivity extends ActionBarActivity {
 			}
 		});
 		
+	}
+	
+	protected void onSaveInstanceState(Bundle outState){
+		super.onSaveInstanceState(outState);
+		outState.putSerializable(RESTORE_DATA_KEY, currentData);
+		outState.putParcelable(RESTORE_ICON_KEY, currentIcon);
+		outState.putInt(RESTORE_POSITON_KEY, currentPosition);
 	}
 	
 	/**
@@ -100,6 +133,7 @@ public class MainActivity extends ActionBarActivity {
 	 * 		the weather information to show
 	 */
 	public void updateDisplayedData(WeatherData data){
+		currentData = data;
 		TextView name = (TextView) findViewById(R.id.name);
 		TextView location = (TextView) findViewById(R.id.location);
 		TextView temp = (TextView) findViewById(R.id.temp);
@@ -117,6 +151,13 @@ public class MainActivity extends ActionBarActivity {
 		humidity.setText(NUMERIC_FORMAT.format(data.getHumidity()));
 		pressure.setText(NUMERIC_FORMAT.format(data.getPressure()));
 		condition.setText(data.getCondition().getMain() + ": " + data.getCondition().getDescription());
+	}
+	
+	public void updateIcon(Bitmap icon){
+		currentIcon = icon;
+		ImageView imgView = (ImageView) findViewById(R.id.icon);
+		imgView.setImageBitmap(icon);
+		imgView.setVisibility(View.VISIBLE);
 	}
 	
 	/**
@@ -159,10 +200,10 @@ public class MainActivity extends ActionBarActivity {
 	 * AsyncTask to fetch the weather icon from openweather api
 	 * <p>Ideally the icon should be cached and re-used instead of fetched every time.
 	 */
-	private class GetIconAsyncTask extends AsyncTask<String, Integer, Drawable> {
+	private class GetIconAsyncTask extends AsyncTask<String, Integer, Bitmap> {
 
 		@Override
-		protected Drawable doInBackground(String... params) {
+		protected Bitmap doInBackground(String... params) {
 			if(params.length != 1){
 				throw new RuntimeException("Wrong number of arguments");
 			}
@@ -172,13 +213,12 @@ public class MainActivity extends ActionBarActivity {
 		}
 		
 		@Override
-		protected void onPostExecute(Drawable img) { 
-			ImageView imgView = (ImageView) findViewById(R.id.icon);
+		protected void onPostExecute(Bitmap img) { 
 			if(img != null){
-				imgView.setImageDrawable(img);
-				imgView.setVisibility(View.VISIBLE);
+				updateIcon(img);
 			} else {
 				// if we could not fetch the icon, still remove the last-showing one
+				ImageView imgView = (ImageView) findViewById(R.id.icon);
 				imgView.setVisibility(View.INVISIBLE);
 				showErrorMsg(getString(R.string.error_icon_msg));
 			}

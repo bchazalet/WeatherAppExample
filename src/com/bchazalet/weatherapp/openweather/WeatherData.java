@@ -1,15 +1,20 @@
 package com.bchazalet.weatherapp.openweather;
 
+import java.io.Serializable;
+
 /**
  * Represents weather information for a particular location
  */
-public class WeatherData {
+public class WeatherData implements Serializable {
+
+	private static final long serialVersionUID = 1L;
 
 	/**
 	 * Represents coordinates of a location
 	 */
-	public static class LatLng {
+	public static class LatLng implements Serializable {
 		
+		private static final long serialVersionUID = 1L;
 		public final double latitude;
 		public final double longitude;
 		
@@ -22,8 +27,10 @@ public class WeatherData {
 	/**
 	 * Represents the weather condition (description, icon, etc)
 	 */
-	public static class Condition {
+	public static class Condition implements Serializable {
 		
+		private static final long serialVersionUID = 1L;
+
 		private final int id;
 		
 		private final String main;
